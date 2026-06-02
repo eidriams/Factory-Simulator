@@ -1,6 +1,12 @@
 from simulator import FactorySim
 
-simulador = FactorySim()
 
-simulador.run()
+def main():
 
+    simulador = FactorySim()
+    simulador.run()
+
+
+
+if __name__ == "__main__":
+    main()

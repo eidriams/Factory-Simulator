@@ -2,31 +2,34 @@
 
 import time
 from machine import Machine
+from database import create_table, insert_data
 
 class FactorySim():
 
     def __init__(self):
 
+        create_table()
         self.machines = [
             Machine("Entrada"),
             Machine("Proceso"),
             Machine("Salida")
         ]
     
-    def run(self):
+    def run(self, max_cycles=5):
         cycles = 0
-        while True:
+        while cycles < max_cycles:
             
             for machine in self.machines:
                 machine.update()
-                print(f"{machine.name} | Status:{machine.status} | Production Count:{machine.prduction_count} | Errors:{machine.errors_count}")
+                insert_data(machine)
+                print(machine)
                 
             cycles += 1
             print("---------")
             time.sleep(2)
             
-            if cycles == 5:
-                print("Numero de ciclos alcanzado")
-                break
+            
+        print("Numero de ciclos alcanzado")
+                
 
 
