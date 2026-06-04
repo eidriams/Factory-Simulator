@@ -18,11 +18,28 @@ class Analysis():
 
         return self.cursor.fetchall()
 
+    def total_cycles(self):
 
-    def total_production(self):
+        self.cursor.execute("""
+        SELECT COUNT(*)
+        FROM machine_data
+        """)
+        # Total rows of generated table
+        cycles = self.cursor.fetchone()[0]
+
+        self.cursor.execute("""
+        SELECT COUNT(DISTINCT machine)
+        FROM machine_data
+        """)
+
+        machines = self.cursor.fetchone()[0]
+        
+        return cycles//machines
+
+
+    def total_production(self):        
 
         data = self.prod_by_machine()
-
         total = 0
 
         for machine, production in data:
@@ -51,14 +68,43 @@ class Analysis():
         """)
         # Total rows of generated table
         total = self.cursor.fetchone()[0]
-
+        # If no errors occurs
+        if total == 0:
+            return 0
         errors = self.total_errors()
+
         # % of records with status = ERROR
         return errors / total * 100
     
+    def most_prob_machine(self):
+
+        self.cursor.execute("""
+        SELECT machine, COUNT(*)
+        FROM machine_data WHERE status = 'ERROR'
+        GROUP BY machine ORDER BY COUNT(*) DESC
+        LIMIT 1                                                    
+        """)
+
+        return self.cursor.fetchone()
+
+    def errors_by_machine(self):
+
+        self.cursor.execute("""
+        SELECT machine, COUNT(*)
+        FROM machine_data WHERE status = 'ERROR'
+        GROUP BY machine                                                     
+        """)
+
+        return self.cursor.fetchall()
+
     def summary(self):
 
-        print("\n--- FACTORY REPORT ---")
+        print("\n===» FACTORY REPORT «===\n")
+
+        print(
+            f"Cycles run on database: "
+            f"{self.total_cycles()}"
+        )
 
         print(
             f"Total production: "
@@ -72,7 +118,18 @@ class Analysis():
             f"{self.error_rate():.2f}%"
         )
 
+        print(f"\nProduction by Machine: ")
+        for machine, production in self.prod_by_machine():
+            print(f" • {machine}: {production}")
+        
+
+        print(f"\nErrors by Machine: ")
+        for machine, error in self.errors_by_machine():
+            print(f" • {machine}: {error}")
+
         print(
-            f"Production by Machine: "
-            f"{self.prod_by_machine()}"
+            f"\nMost Problematic Machine: "
+            f"{self.most_prob_machine()[0]} → {self.most_prob_machine()[1]}"
         )
+
+        

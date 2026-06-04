@@ -31,3 +31,11 @@ def insert_data(machine):
     ))
 
     conn.commit()
+
+def reset_db():
+
+    cursor.execute("""
+    DROP TABLE machine_data
+    """)
+
+    conn.commit()

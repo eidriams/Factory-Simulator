@@ -2,7 +2,7 @@
 
 import time
 from machine import Machine
-from database import create_table, insert_data
+from database import create_table, insert_data, reset_db
 
 class FactorySim():
 
@@ -16,6 +16,7 @@ class FactorySim():
         ]
     
     def run(self, max_cycles=5):
+        
         cycles = 0
         while cycles < max_cycles:
             
@@ -32,4 +33,5 @@ class FactorySim():
         print("Numero de ciclos alcanzado")
                 
 
-
+    def reset(self):
+        reset_db()
