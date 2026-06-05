@@ -13,14 +13,15 @@ class Machine():
 
     def update(self):
 
-        # Simulación de un posible fallo
-        # random() devuelve un float entre 0.0 y 1.0, que equivaldría a dar un porcentaje de que se produzca un fallo
+        # Status monitor for possible failures
+    
         if random.random() < 0.1: 
             self.status = "ERROR"
             self.errors_count += 1
         
-        if self.status == "RUNNING":
-            self.production_count += 1 # La maquina procesa una pieza con exito
+        # Machine no longer produces by itself
+        # if self.status == "RUNNING":
+        #     self.production_count += 1
 
         elif self.status == "ERROR":
             # Recuperarse de un error
@@ -28,9 +29,10 @@ class Machine():
                 self.status = "RUNNING"
 
     def __str__(self):
+
         return (
-        f"{self.name} | "
+        f"{self.name}:\n"
         f"Status:{self.status} | "
-        f"Production:{self.production_count} | "
+        # f"Production:{self.production_count} | "
         f"Errors:{self.errors_count}"
         )

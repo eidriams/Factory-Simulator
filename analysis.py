@@ -32,6 +32,7 @@ class Analysis():
         FROM machine_data
         """)
 
+        # Dynamic counting machines to set number of cycles
         machines = self.cursor.fetchone()[0]
         
         return cycles//machines

@@ -19,7 +19,7 @@ def main():
 
         if option == "1":
             cycles = int(input("\nSelect number of cycles to run: "))
-            simulador.run(cycles)
+            simulador.run_queues(cycles)
 
         elif option == "2":
             analysis.summary()
