@@ -21,3 +21,6 @@ class ProductionQueue():
     def size(self):
 
         return len(self.queue)
+    
+    def __str__(self):
+        return str(self.queue)

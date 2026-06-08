@@ -14,19 +14,20 @@ class Machine():
     def update(self):
 
         # Status monitor for possible failures
-    
-        if random.random() < 0.1: 
-            self.status = "ERROR"
-            self.errors_count += 1
-        
-        # Machine no longer produces by itself
-        # if self.status == "RUNNING":
-        #     self.production_count += 1
 
-        elif self.status == "ERROR":
+        # If there is an error, machine try to recover
+        if self.status == "ERROR":
+
             # Recuperarse de un error
             if random.random() < 0.3:
                 self.status = "RUNNING"
+
+            return
+        
+        # If it is running, there are failures chances 
+        if random.random() < 0.1: 
+            self.status = "ERROR"
+            self.errors_count += 1
 
     def __str__(self):
 
