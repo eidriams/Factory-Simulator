@@ -40,20 +40,29 @@ class FactorySim():
 
         self.created_pieces = 0
 
-        for cycle in range(max_cycles):
+        for cycle in range(1,max_cycles+1):
 
             entrada = self.machines[0]
             proceso = self.machines[1]
             salida = self.machines[2]
             
-
+            print(f"Cycle Nº {cycle}\n")
             entrada.update()
             if entrada.status == "RUNNING":
                 # If no error in first machine, add to queue for the second one
                 self.queue_1.add_piece()
                 self.created_pieces += 1
-
-            print(entrada)
+            insert_data(entrada)
+            print(
+                f"{entrada.name}\n"
+                f"Utilization: {entrada.utilization()}\n"
+                f"MTBF: {entrada.mtbf()} cycles\n"
+                f"Status: {entrada.status}\n"
+                f"Errors: {entrada.errors_count}\n"
+                
+                )
+            
+            print(f"Cycles: Run: {entrada.running_cycles} | Idle: {entrada.idle_cycles} | Error: {entrada.error_cycles} | Maintenance: {entrada.maintenance_time}\n")
             
             proceso.update()
             if proceso.status != "ERROR":
@@ -69,8 +78,17 @@ class FactorySim():
                     # If a piece is taken (no errors), it moves to next queue
                     if piece:
                         self.queue_2.add_piece()
+            insert_data(proceso)
+            print(
+                f"{proceso.name}\n"
+                f"Utilization: {proceso.utilization()}\n"
+                f"MTBF: {proceso.mtbf()} cycles\n"
+                f"Status: {proceso.status}\n"
+                f"Errors: {proceso.errors_count}\n"
                 
-            print(proceso)
+                )
+            
+            print(f"Cycles: Run: {proceso.running_cycles} | Idle: {proceso.idle_cycles} | Error: {proceso.error_cycles} | Maintenance: {proceso.maintenance_time}\n")
             
             salida.update()
             if salida.status != "ERROR":
@@ -86,8 +104,17 @@ class FactorySim():
                     if piece:
                         # If last machine is successful, process is completed and we add 1 to production count
                         salida.production_count += 1
+            insert_data(salida)
+            print(
+                f"{salida.name}\n"
+                f"Utilization: {salida.utilization()}\n"
+                f"MTBF: {salida.mtbf()} cycles\n"
+                f"Status: {salida.status}\n"
+                f"Errors: {salida.errors_count}\n"
                 
-            print(salida)
+                )
+            
+            print(f"Cycles: Run: {salida.running_cycles} | Idle: {salida.idle_cycles} | Error: {salida.error_cycles} | Maintenance: {salida.maintenance_time}\n")
 
 
             print("----------------------------------------")
@@ -99,9 +126,11 @@ class FactorySim():
                 f"Completed:{salida.production_count}"
             )
             print("-------------")
+            
             time.sleep(2)
 
         print("Number of cycles achieved")
+        
         print(
             f"Pieces created: "
             f"{self.created_pieces}"

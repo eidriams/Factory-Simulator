@@ -119,9 +119,9 @@ class Analysis():
             f"{self.error_rate():.2f}%"
         )
 
-        print(f"\nProduction by Machine: ")
-        for machine, production in self.prod_by_machine():
-            print(f" • {machine}: {production}")
+        # print(f"\nProduction by Machine: ")
+        # for machine, production in self.prod_by_machine():
+        #     print(f" • {machine}: {production}")
         
 
         print(f"\nErrors by Machine: ")
