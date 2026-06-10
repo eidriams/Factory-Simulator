@@ -33,20 +33,58 @@ class Machine():
 
     def update(self):
 
-        # Status monitor for possible failures
-    
+        # Status monitor 
+
+        if self.status == "ERROR":
+            # Number of cycles with status = ERROR
+            self.error_cycles += 1
+            self.current_error_duration += 1
+
+            if self.current_error_duration >= self.required_error_duration:
+                self.status = "MAINTENANCE"
+                self.maintenance_type = "CORRECTIVE"
+                self.corrective_maintenance += 1
+                self.current_error_duration = 0
+            return
+
+        elif self.status == "IDLE":
+            self.idle_cycles += 1
+
+        elif self.status == "RUNNING":
+            self.running_cycles += 1
+
+        elif self.status == "MAINTENANCE":
+
+            self.maintenance_cycles -= 1
+            self.maintenance_time += 1
+
+            if self.maintenance_cycles <= 0:
+
+                self.status = "RUNNING"
+                self.maintenance_cycles = 3
+            
+            return
+        
+        # If it is running, there are failures chances 
         if random.random() < 0.1: 
             
             self.errors_count += 1
-        
-        # Machine no longer produces by itself
-        # if self.status == "RUNNING":
-        #     self.production_count += 1
+            self.errors_since_maintenance += 1
+            # Nº of cycles on error status
+            self.required_error_duration = random.randint(1,3)
 
-        elif self.status == "ERROR":
-            # Recuperarse de un error
-            if random.random() < 0.3:
-                self.status = "RUNNING"
+            self.status = "ERROR"
+
+            return
+        
+        if self.errors_since_maintenance >= 5:
+
+            self.status = "MAINTENANCE"
+            self.maintenance_type = "PREVENTIVE"
+            self.preventive_maintenance += 1
+            self.errors_since_maintenance = 0
+            
+        return
 
     def __str__(self):
 
