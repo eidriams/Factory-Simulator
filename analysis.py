@@ -1,4 +1,6 @@
 import sqlite3 as sql
+from machine import Machine
+from simulator import FactorySim
 
 
 
@@ -49,6 +51,15 @@ class Analysis():
         return total
         # Could be only one line of code
         # return sum(production for _,production in data)
+
+    def prod_rate(self):
+
+        cycles = self.total_cycles()
+        prod = self.total_production()
+
+        rate = prod/cycles * 100
+
+        return rate
     
     def total_errors(self):
 
@@ -102,29 +113,22 @@ class Analysis():
 
         print("\n===» FACTORY REPORT «===\n")
 
-        print(
-            f"Cycles run on database: "
-            f"{self.total_cycles()}"
+        print(f"Cycles run on database: {self.total_cycles()}"
         )
 
-        print(
-            f"Total production: "
-            f"{self.total_production()}"
+        print(f"Total production: {self.total_production()}"
         )
 
+        print(f"Production rate: {self.prod_rate():.1f}%")
+
         print(
-            f"Total Errors: "
+            f"Total rows on 'Error' state: "
             f"{self.total_errors()}\n"
             f"Error rate: "
             f"{self.error_rate():.2f}%"
         )
 
-        # print(f"\nProduction by Machine: ")
-        # for machine, production in self.prod_by_machine():
-        #     print(f" • {machine}: {production}")
-        
-
-        print(f"\nErrors by Machine: ")
+        print(f"\nStatus 'Error' by Machine during simulation: ")
         for machine, error in self.errors_by_machine():
             print(f" • {machine}: {error}")
 

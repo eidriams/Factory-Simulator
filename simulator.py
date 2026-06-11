@@ -2,7 +2,7 @@
 
 import time
 from machine import Machine
-from database import create_table, insert_data, reset_db
+from database import create_table, insert_data, reset_db, insert_simulation_data
 from queue_manager import ProductionQueue
 
 class FactorySim():
@@ -18,26 +18,11 @@ class FactorySim():
         # Queues between machines "Entrada"-"Proceso" and "Proceso"-"Salida"
         self.queue_1 = ProductionQueue()
         self.queue_2 = ProductionQueue()
-    
-    def run(self, max_cycles=5):
-        
-        cycles = 0
-        while cycles < max_cycles:
-            
-            for machine in self.machines:
-                machine.update()
-                insert_data(machine)
-                print(machine)
-                
-            cycles += 1
-            print("----------------------------------")
-            time.sleep(2)
 
-        print("Numero de ciclos alcanzado")
-            
     
     def run_queues(self, max_cycles):
-
+        
+        # Pieces that enter the first queue with no errors
         self.created_pieces = 0
 
         for cycle in range(1,max_cycles+1):
@@ -46,13 +31,24 @@ class FactorySim():
             proceso = self.machines[1]
             salida = self.machines[2]
             
-            print(f"Cycle Nº {cycle}\n")
+            print(f"\n** Cycle Nº {cycle} **\n")
+
+            # MACHINE 1 ENTRADA
+
             entrada.update()
             if entrada.status == "RUNNING":
                 # If no error in first machine, add to queue for the second one
                 self.queue_1.add_piece()
                 self.created_pieces += 1
-            insert_data(entrada)
+
+            insert_data(entrada,cycle)
+            insert_simulation_data(
+                cycle,
+                self.queue_1.size(),
+                self.queue_2.size(),
+                self.created_pieces,
+                entrada.production_count)
+            
             print(
                 f"{entrada.name}\n"
                 f"Utilization: {entrada.utilization()}\n"
@@ -63,6 +59,8 @@ class FactorySim():
                 )
             
             print(f"Cycles: Run: {entrada.running_cycles} | Idle: {entrada.idle_cycles} | Error: {entrada.error_cycles} | Maintenance: {entrada.maintenance_time}\n")
+
+            # MACHINE 2 PROCESO
             
             proceso.update()
             if proceso.status != "ERROR":
@@ -78,7 +76,15 @@ class FactorySim():
                     # If a piece is taken (no errors), it moves to next queue
                     if piece:
                         self.queue_2.add_piece()
-            insert_data(proceso)
+
+            insert_data(proceso,cycle)
+            insert_simulation_data(
+                cycle,
+                self.queue_1.size(),
+                self.queue_2.size(),
+                self.created_pieces,
+                proceso.production_count)
+            
             print(
                 f"{proceso.name}\n"
                 f"Utilization: {proceso.utilization()}\n"
@@ -89,6 +95,8 @@ class FactorySim():
                 )
             
             print(f"Cycles: Run: {proceso.running_cycles} | Idle: {proceso.idle_cycles} | Error: {proceso.error_cycles} | Maintenance: {proceso.maintenance_time}\n")
+
+            # MACHINE 3 SALIDA
             
             salida.update()
             if salida.status != "ERROR":
@@ -104,7 +112,14 @@ class FactorySim():
                     if piece:
                         # If last machine is successful, process is completed and we add 1 to production count
                         salida.production_count += 1
-            insert_data(salida)
+            insert_data(salida,cycle)
+            insert_simulation_data(
+                cycle,
+                self.queue_1.size(),
+                self.queue_2.size(),
+                self.created_pieces,
+                salida.production_count)
+            
             print(
                 f"{salida.name}\n"
                 f"Utilization: {salida.utilization()}\n"
@@ -129,10 +144,10 @@ class FactorySim():
             
             time.sleep(2)
 
-        print("Number of cycles achieved")
+        print("\nNumber of cycles achieved")
         
         print(
-            f"Pieces created: "
+            f"Items on process: "
             f"{self.created_pieces}"
 
         )
@@ -151,4 +166,21 @@ class FactorySim():
 
     def reset(self): 
         reset_db()
+    
+
+
+    # def run(self, max_cycles=5):
         
+    #     cycles = 0
+    #     while cycles < max_cycles:
+            
+    #         for machine in self.machines:
+    #             machine.update()
+    #             insert_data(machine)
+    #             print(machine)
+                
+    #         cycles += 1
+    #         print("----------------------------------")
+    #         time.sleep(2)
+
+    #     print("Numero de ciclos alcanzado")

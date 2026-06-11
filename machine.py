@@ -9,11 +9,11 @@ class Machine():
         self.name = name
         self.status = "RUNNING"
         self.production_count = 0
-        self.errors_count = 0 # Total
+        self.errors_count = 0 # Total failures occur
 
         self.running_cycles = 0
         self.idle_cycles = 0
-        self.error_cycles = 0
+        self.error_cycles = 0 # Total rows on ERROR state during simulation
         self.current_error_duration = 0 # Actual error
         self.required_error_duration = 0 # Actual error duration
         self.errors_since_maintenance = 0
@@ -35,26 +35,10 @@ class Machine():
 
         # Status monitor 
 
-        if self.status == "ERROR":
-            # Number of cycles with status = ERROR
-            self.error_cycles += 1
-            self.current_error_duration += 1
+        # 1. MAINTENANCE
 
-            if self.current_error_duration >= self.required_error_duration:
-                self.status = "MAINTENANCE"
-                self.maintenance_type = "CORRECTIVE"
-                self.corrective_maintenance += 1
-                self.current_error_duration = 0
-            return
-
-        elif self.status == "IDLE":
-            self.idle_cycles += 1
-
-        elif self.status == "RUNNING":
-            self.running_cycles += 1
-
-        elif self.status == "MAINTENANCE":
-
+        if self.status == "MAINTENANCE":
+            
             self.maintenance_cycles -= 1
             self.maintenance_time += 1
 
@@ -62,29 +46,64 @@ class Machine():
 
                 self.status = "RUNNING"
                 self.maintenance_cycles = 3
+                self.maintenance_type = None
             
             return
-        
-        # If it is running, there are failures chances 
-        if random.random() < 0.1: 
-            
-            self.errors_count += 1
-            self.errors_since_maintenance += 1
-            # Nº of cycles on error status
-            self.required_error_duration = random.randint(1,3)
 
-            self.status = "ERROR"
+        # 2. ERROR
+
+        if self.status == "ERROR":
+
+            self.error_cycles += 1
+            self.current_error_duration += 1
+
+            if self.current_error_duration >= self.required_error_duration:
+
+                self.status = "MAINTENANCE"
+                self.maintenance_type = "CORRECTIVE"
+                self.corrective_maintenance += 1
+
+                self.current_error_duration = 0
+
+                print(f"{self.name} going on {self.maintenance_type} Maintenance for {self.maintenance_cycles} cycles.\n")
 
             return
-        
+
+        # 3. PREVENTIVE
+
         if self.errors_since_maintenance >= 5:
 
             self.status = "MAINTENANCE"
             self.maintenance_type = "PREVENTIVE"
             self.preventive_maintenance += 1
             self.errors_since_maintenance = 0
+
+            print(f"{self.name} going on {self.maintenance_type} Maintenance for {self.maintenance_cycles} cycles.\n")
+        
+            return
+
+        # 4. COUNTERS
+
+        if self.status == "RUNNING":
+            self.running_cycles += 1
+
+        elif self.status == "IDLE":
+            self.idle_cycles += 1
+
+
+        # 5. FAILURE
+        
+        # If it's running or idle, there are failures chances
+        if random.random() < 0.1: 
             
-        return
+            self.errors_count += 1
+            self.errors_since_maintenance += 1
+
+            # Nº of cycles on error status
+            self.required_error_duration = random.randint(1,3)
+            self.status = "ERROR"
+
+            return       
 
     def __str__(self):
 
