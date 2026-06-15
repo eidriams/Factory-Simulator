@@ -13,8 +13,8 @@ def create_table():
         cycle INTEGER,
         machine TEXT,
         status TEXT,
-        production INTEGER,
         errors_count INTEGER,
+        error_type TEXT,
         error_cycles INTEGER,
         maintenance_type TEXT,
         timestamp TEXT
@@ -41,8 +41,8 @@ def insert_data(machine,cycle):
         cycle,
         machine.name,
         machine.status,
-        machine.production_count,
         machine.errors_count,
+        machine.error_type,
         machine.error_cycles,
         machine.maintenance_type,
         datetime.now().replace(microsecond=0)

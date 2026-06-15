@@ -10,15 +10,24 @@ class Analysis():
         self.conn = sql.connect("factory.db")
         self.cursor = self.conn.cursor()
 
-    def prod_by_machine(self):
+    # def prod_by_machine(self):
 
+    #     self.cursor.execute("""
+    #         SELECT machine, MAX(production)
+    #         FROM machine_data
+    #         GROUP BY machine
+    #         """)
+    
+        # return self.cursor.fetchall()
+
+    def completed(self):
         self.cursor.execute("""
-            SELECT machine, MAX(production)
-            FROM machine_data
-            GROUP BY machine
-            """)
+        SELECT MAX(completed_pieces)
+        FROM simulation_data
+        """)
 
-        return self.cursor.fetchall()
+        return self.cursor.fetchone()[0]
+
 
     def total_cycles(self):
 
@@ -40,22 +49,22 @@ class Analysis():
         return cycles//machines
 
 
-    def total_production(self):        
+    # def total_production(self):        
 
-        data = self.prod_by_machine()
-        total = 0
+    #     data = self.completed()
+    #     total = 0
 
-        for machine, production in data:
-            total += production
+    #     for machine, production in data:
+    #         total += production
         
-        return total
-        # Could be only one line of code
-        # return sum(production for _,production in data)
+    #     return total
+    #     # Could be only one line of code
+    #     # return sum(production for _,production in data)
 
     def prod_rate(self):
 
         cycles = self.total_cycles()
-        prod = self.total_production()
+        prod = self.completed()
 
         rate = prod/cycles * 100
 
@@ -116,7 +125,7 @@ class Analysis():
         print(f"Cycles run on database: {self.total_cycles()}"
         )
 
-        print(f"Total production: {self.total_production()}"
+        print(f"Total production: {self.completed()}"
         )
 
         print(f"Production rate: {self.prod_rate():.1f}%")

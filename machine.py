@@ -10,6 +10,7 @@ class Machine():
         self.status = "RUNNING"
         self.production_count = 0
         self.errors_count = 0 # Total failures occur
+        self.error_type = None # Minor, Moderate or Major
 
         self.running_cycles = 0
         self.idle_cycles = 0
@@ -17,19 +18,18 @@ class Machine():
         self.current_error_duration = 0 # Actual error
         self.required_error_duration = 0 # Actual error duration
         self.errors_since_maintenance = 0
+
         # Duration in cycles of maintenance
-        self.maintenance_cycles = 3
+        self.maintenance_cycles = 0
         self.maintenance_time = 0
-        self.maintenance_type = None # Preventive or Corrective
+        self.maintenance_type = None 
+        # Preventive or Corrective
         self.preventive_maintenance = 0
         self.corrective_maintenance = 0
 
         self.running_cycles = 0
         self.idle_cycles = 0
         self.error_cycles = 0
-        # Duration in cycles of maintenance
-        self.maintenance_cycles = 3
-        self.maintenance_time = 0
 
     def update(self):
 
@@ -45,8 +45,9 @@ class Machine():
             if self.maintenance_cycles <= 0:
 
                 self.status = "RUNNING"
-                self.maintenance_cycles = 3
+                self.maintenance_cycles = 0
                 self.maintenance_type = None
+                self.error_type = None
             
             return
 
@@ -86,6 +87,8 @@ class Machine():
 
         if self.status == "RUNNING":
             self.running_cycles += 1
+            self.maintenance_type = None
+            self.error_type = None
 
         elif self.status == "IDLE":
             self.idle_cycles += 1
@@ -99,8 +102,21 @@ class Machine():
             self.errors_count += 1
             self.errors_since_maintenance += 1
 
-            # Nº of cycles on error status
-            self.required_error_duration = random.randint(1,3)
+            severity = random.randint(1,10)
+
+            if severity <= 3:
+                self.required_error_duration = 1
+                self.error_type = "MINOR"
+                self.maintenance_cycles = 1
+            elif severity <= 7:
+                self.required_error_duration = 2
+                self.error_type = "MODERATE"
+                self.maintenance_cycles = 2
+            else:
+                self.required_error_duration = 4
+                self.error_type = "MAJOR"
+                self.maintenance_cycles = 3
+
             self.status = "ERROR"
 
             return       
