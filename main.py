@@ -18,14 +18,36 @@ def main():
         option = input("\nSelect an option: ")
 
         if option == "1":
+
             cycles = int(input("\nSelect number of cycles to run: "))
+
+            if cycles <= 0:
+                print("Cycles must be greater than 0.")
+                continue
             simulador.run_queues(cycles)
 
         elif option == "2":
-            analysis.summary()
+
+            if not analysis.database_ready():
+
+                print("\nDatabase not initialize.\n")
+
+            elif not analysis.has_data():
+
+                print("\nNo simulation data avaiable.\n")
+
+            else:
+
+                analysis.summary()
 
         elif option == "3":
-            simulador.reset()            
+
+            table = analysis.database_ready()
+            
+            if not table:
+                print("\nDatabase does not have any data")
+            else:
+                simulador.reset()            
 
         elif option == "4":
             # Cierra conexion con base de datos

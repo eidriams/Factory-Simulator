@@ -80,4 +80,4 @@ def reset_db():
     """)
 
     conn.commit()
-    conn.close()
+    

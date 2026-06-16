@@ -106,7 +106,12 @@ class Analysis():
         LIMIT 1                                                    
         """)
 
-        return self.cursor.fetchone()
+        result = self.cursor.fetchone()
+        # Case with no errors
+        if result is None:
+            return ("None",0)
+
+        return result
 
     def errors_by_machine(self):
 
@@ -117,6 +122,53 @@ class Analysis():
         """)
 
         return self.cursor.fetchall()
+    
+    def database_ready(self):
+
+        # Check if database has tables in it
+
+        self.cursor.execute("""
+        SELECT name 
+        FROM sqlite_master
+        WHERE type='table'
+        """)
+
+        tables = [table[0] for table in self.cursor.fetchall()]
+
+        return ( "machine_data" in tables and "simulation_data" in tables )
+
+    
+    def has_data(self):
+
+        # Check if tables has any data on it
+
+        if not self.database_ready():
+            return False
+
+        self.cursor.execute("""
+        SELECT COUNT(*) FROM machine_data 
+        """)
+        
+        return self.cursor.fetchone()[0] > 0
+    
+    def simulation_integrity(self):
+
+        self.cursor.execute("""
+        SELECT 
+        created_pieces,
+        completed_pieces,
+        queue_1,
+        queue_2
+        FROM simulation_data 
+        ORDER BY cycle DESC
+        LIMIT 1
+        """)
+        
+        created, completed, q1, q2 = self.cursor.fetchone()
+
+        return created == completed + q1 + q2
+    
+
 
     def summary(self):
 
@@ -146,4 +198,4 @@ class Analysis():
             f"{self.most_prob_machine()[0]} → {self.most_prob_machine()[1]}"
         )
 
-        
+        print(f"Process completed without missing pieces? → {self.simulation_integrity}")
