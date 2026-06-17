@@ -66,6 +66,9 @@ class Analysis():
         cycles = self.total_cycles()
         prod = self.completed()
 
+        if cycles == 0:
+            return 0
+
         rate = prod/cycles * 100
 
         return rate
@@ -156,7 +159,7 @@ class Analysis():
         self.cursor.execute("""
         SELECT 
         created_pieces,
-        completed_pieces,
+        MAX(completed_pieces),
         queue_1,
         queue_2
         FROM simulation_data 
@@ -164,7 +167,14 @@ class Analysis():
         LIMIT 1
         """)
         
-        created, completed, q1, q2 = self.cursor.fetchone()
+        result = self.cursor.fetchone()
+
+        if result is None:
+            return False
+
+        created, completed, q1, q2 = result
+
+        # print(f"{created} == {completed} + {q1} + {q2}") Check if its picking the right variables
 
         return created == completed + q1 + q2
     
@@ -198,4 +208,4 @@ class Analysis():
             f"{self.most_prob_machine()[0]} → {self.most_prob_machine()[1]}"
         )
 
-        print(f"Process completed without missing pieces? → {self.simulation_integrity}")
+        print(f"Process completed without missing pieces? → {self.simulation_integrity()}")

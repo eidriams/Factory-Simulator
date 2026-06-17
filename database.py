@@ -72,11 +72,11 @@ def insert_simulation_data(
 def reset_db():
 
     cursor.execute("""
-    DROP TABLE machine_data
+    DROP TABLE IF EXISTS machine_data
     """)
 
     cursor.execute("""
-    DROP TABLE simulation_data
+    DROP TABLE IF EXISTS simulation_data
     """)
 
     conn.commit()

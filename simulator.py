@@ -36,19 +36,14 @@ class FactorySim():
             # MACHINE 1 ENTRADA
 
             entrada.update()
+
             if entrada.status == "RUNNING":
                 # If no error in first machine, add to queue for the second one
                 self.queue_1.add_piece()
                 self.created_pieces += 1
 
             insert_data(entrada,cycle)
-            insert_simulation_data(
-                cycle,
-                self.queue_1.size(),
-                self.queue_2.size(),
-                self.created_pieces,
-                entrada.production_count)
-            
+
             print(
                 f"{entrada.name}\n"
                 f"Utilization: {entrada.utilization()}\n"
@@ -62,28 +57,27 @@ class FactorySim():
 
             # MACHINE 2 PROCESO
             
-            proceso.update()
-            if proceso.status != "ERROR":
+            if proceso.status not in ["ERROR", "MAINTENANCE"]:
 
                 if self.queue_1.size() == 0:
                     proceso.status = "IDLE"
-                
                 else:
                     proceso.status = "RUNNING"
-                    # If no error, take a piece from queue_1
-                    piece = self.queue_1.remove_piece()
 
-                    # If a piece is taken (no errors), it moves to next queue
-                    if piece:
-                        self.queue_2.add_piece()
+            proceso.update()
+
+            if proceso.status == "RUNNING":
+
+                # If no error, take a piece from queue_1
+                piece = self.queue_1.remove_piece()
+                # If a piece is taken (no errors), it moves to next queue
+                if piece:
+                    self.queue_2.add_piece()
+
+            elif proceso.status == "IDLE":
+                pass
 
             insert_data(proceso,cycle)
-            insert_simulation_data(
-                cycle,
-                self.queue_1.size(),
-                self.queue_2.size(),
-                self.created_pieces,
-                proceso.production_count)
             
             print(
                 f"{proceso.name}\n"
@@ -98,27 +92,26 @@ class FactorySim():
 
             # MACHINE 3 SALIDA
             
-            salida.update()
-            if salida.status != "ERROR":
+            if salida.status not in ["ERROR", "MAINTENANCE"]:
 
                 if self.queue_2.size() == 0:
                     salida.status = "IDLE"
-                
                 else:
                     salida.status = "RUNNING"
-                    # If no error take a piece from queue_2
-                    piece = self.queue_2.remove_piece()
 
-                    if piece:
-                        # If last machine is successful, process is completed and we add 1 to production count
-                        salida.production_count += 1
+            salida.update()
+
+            if salida.status == "RUNNING":
+
+                piece = self.queue_2.remove_piece()
+                # If last machine is successful, process is completed and we add 1 to production count
+                if piece:
+                    salida.production_count += 1
+
+            elif salida.status == "IDLE":
+                pass
+
             insert_data(salida,cycle)
-            insert_simulation_data(
-                cycle,
-                self.queue_1.size(),
-                self.queue_2.size(),
-                self.created_pieces,
-                salida.production_count)
             
             print(
                 f"{salida.name}\n"
@@ -141,6 +134,14 @@ class FactorySim():
                 f"Completed:{salida.production_count}"
             )
             print("-------------")
+
+            insert_simulation_data(
+                cycle,
+                self.queue_1.size(),
+                self.queue_2.size(),
+                self.created_pieces,
+                salida.production_count)
+            
             
             time.sleep(2)
 
@@ -160,9 +161,9 @@ class FactorySim():
             f"Pieces left on second queue: {self.queue_2.size()}, {self.queue_2}"
         )
                 
-        # Test if any piece is miss during process
-        print("Process completed without missing pieces?")
-        print(self.created_pieces == salida.production_count + self.queue_1.size() + self.queue_2.size())
+        # # Test if any piece is miss during process
+        # print("Process completed without missing pieces?")
+        # print(self.created_pieces == salida.production_count + self.queue_1.size() + self.queue_2.size())
 
     def reset(self): 
         reset_db()

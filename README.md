@@ -67,13 +67,24 @@ Estructura del proyecto
 
 Estado actual
 
+Implementado:
+    ✅ Simulación de línea de producción
+    ✅ Máquinas con estados
+    ✅ Colas entre procesos
+    ✅ Fallos aleatorios
+    ✅ Severidad de averías
+    ✅ Mantenimiento preventivo
+    ✅ Mantenimiento correctivo
+    ✅ Persistencia SQLite
+    ✅ Estadísticas y análisis
+    ✅ Integridad del proceso
+
 🚧 Proyecto en desarrollo.
 
 Primer objetivo:
     Crear estructura básica del simulador.
     Modelar máquinas y estaciones.
     Implementar flujo simple de producción.
-    
 
 Cómo ejecutar el proyecto.
     python main.py.

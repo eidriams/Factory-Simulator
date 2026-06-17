@@ -27,9 +27,6 @@ class Machine():
         self.preventive_maintenance = 0
         self.corrective_maintenance = 0
 
-        self.running_cycles = 0
-        self.idle_cycles = 0
-        self.error_cycles = 0
 
     def update(self):
 
@@ -87,7 +84,7 @@ class Machine():
 
         if self.status == "RUNNING":
             self.running_cycles += 1
-            self.maintenance_type = None
+            # self.maintenance_type = None
             self.error_type = None
 
         elif self.status == "IDLE":
