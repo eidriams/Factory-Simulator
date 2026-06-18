@@ -31,6 +31,15 @@ def create_table():
         )
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS error_log (
+        cycle INTEGER,
+        machine TEXT,
+        error_type TEXT,
+        timestamp TEXT
+        )
+    """)
+
     conn.commit()
 
 def insert_data(machine,cycle):
@@ -66,6 +75,20 @@ def insert_simulation_data(
         created_pieces,
         completed_pieces))
     
+    conn.commit()
+
+
+def insert_error(cycle,machine,error_type):
+
+    cursor.execute("""
+    INSERT INTO error_log VALUES (?, ?, ?, ?)
+    """,(
+        cycle,
+        machine.name,
+        machine.error_type,
+        datetime.now().replace(microsecond=0)
+    ))
+
     conn.commit()
 
 

@@ -10,15 +10,14 @@ class Analysis():
         self.conn = sql.connect("factory.db")
         self.cursor = self.conn.cursor()
 
-    # def prod_by_machine(self):
+    def rows(self):
 
-    #     self.cursor.execute("""
-    #         SELECT machine, MAX(production)
-    #         FROM machine_data
-    #         GROUP BY machine
-    #         """)
-    
-        # return self.cursor.fetchall()
+        self.cursor.execute("""
+        SELECT COUNT(*)
+        FROM machine_data
+        """)
+        # Total rows of generated table
+        return self.cursor.fetchone()[0]
 
     def completed(self):
         self.cursor.execute("""
@@ -31,12 +30,12 @@ class Analysis():
 
     def total_cycles(self):
 
-        self.cursor.execute("""
-        SELECT COUNT(*)
-        FROM machine_data
-        """)
+        # self.cursor.execute("""
+        # SELECT COUNT(*)
+        # FROM machine_data
+        # """)
         # Total rows of generated table
-        cycles = self.cursor.fetchone()[0]
+        rows = self.rows()
 
         self.cursor.execute("""
         SELECT COUNT(DISTINCT machine)
@@ -46,7 +45,7 @@ class Analysis():
         # Dynamic counting machines to set number of cycles
         machines = self.cursor.fetchone()[0]
         
-        return cycles//machines
+        return rows//machines
 
 
     # def total_production(self):        
@@ -175,8 +174,120 @@ class Analysis():
         created, completed, q1, q2 = result
 
         # print(f"{created} == {completed} + {q1} + {q2}") Check if its picking the right variables
+        if created == completed + q1 + q2:
+            return "  • PASSED"
+        else:
+            return "  • FAILED"
+    
+    # Max queue reached
+    def bottleneck(self):
 
-        return created == completed + q1 + q2
+        self.cursor.execute("""
+        SELECT MAX(queue_1), MAX(queue_2)
+        FROM simulation_data 
+        """)
+
+        q1max, q2max = self.cursor.fetchone()
+
+        return f"  • queue_1 = {q1max}\n  • queue_2 = {q2max}\n"
+    
+    def avg_queue(self):
+
+        self.cursor.execute("""
+        SELECT AVG(queue_1), AVG(queue_2)
+        FROM simulation_data
+        """)
+
+        avgq1, avgq2 = self.cursor.fetchone()
+
+        print(f"  • AVG Q1 = {avgq1:.2f}\n  • AVG Q2 = {avgq2:.2f}\n")
+
+        return avgq1, avgq2
+    
+
+    def bottleneck_analysis(self):
+
+        avg_q1, avg_q2 = self.avg_queue()
+
+        if avg_q1 > avg_q2:
+            return "Queue 1", avg_q1
+        elif avg_q1 < avg_q2:
+            return "Queue 2", avg_q2
+        else:
+            return "Balanced", avg_q1
+
+
+    # Time on what type of maintenance
+    def tot_maintenance(self):
+
+        self.cursor.execute("""
+        SELECT COUNT(*)
+        FROM machine_data
+        WHERE maintenance_type = 'CORRECTIVE'
+        """)
+        corrective = self.cursor.fetchone()[0]
+    
+        self.cursor.execute("""
+        SELECT COUNT(*)
+        FROM machine_data
+        WHERE maintenance_type = 'PREVENTIVE'
+        """)
+        preventive = self.cursor.fetchone()[0]
+    
+        return corrective, preventive
+    
+    # How many type of errors occur
+    def severity_dist(self):
+
+        self.cursor.execute("""
+        SELECT error_type, COUNT(*)
+        FROM machine_data
+        WHERE error_type IS NOT NULL
+        GROUP BY error_type
+        ORDER BY COUNT(*) DESC
+        """)
+
+        return self.cursor.fetchall()
+
+    # Time of every machine on state RUNNING during simulation
+    def overall_util(self):
+        
+        self.cursor.execute("""
+        SELECT COUNT(*)
+        FROM machine_data
+        """)
+        # Total rows of generated table
+        total = self.cursor.fetchone()[0]
+
+        self.cursor.execute("""
+        SELECT COUNT(*)
+        FROM machine_data
+        WHERE status="RUNNING"
+        """)
+
+        run = self.cursor.fetchone()[0]
+
+        # If no row with RUNNING occurs
+        if total == 0:
+            return 0
+        
+        # % of records with status = RUNNING
+        result = run / total * 100
+        return f"{result:.2f}"
+    
+    def state_distribution(self):
+
+        self.cursor.execute("""
+        SELECT status, COUNT(*)
+        FROM machine_data
+        GROUP BY status
+        ORDER BY COUNT(*) DESC
+        """)
+
+        return self.cursor.fetchall()
+
+
+
     
 
 
@@ -184,28 +295,49 @@ class Analysis():
 
         print("\n===» FACTORY REPORT «===\n")
 
-        print(f"Cycles run on database: {self.total_cycles()}"
+        print(f"→ Cycles run on database: {self.total_cycles()}"
         )
 
-        print(f"Total production: {self.completed()}"
-        )
+        print(f"→ Production:")
 
-        print(f"Production rate: {self.prod_rate():.1f}%")
+        print(f"  • Completed Pieces: {self.completed()}")
+
+        print(f"  • Production rate: {self.prod_rate():.1f}%")
+
+        print(f"\n→ Overall machine utilization: {self.overall_util()}%")
+
+        print(f"→ Error rate: {self.error_rate():.2f}%"
+        )
 
         print(
-            f"Total rows on 'Error' state: "
-            f"{self.total_errors()}\n"
-            f"Error rate: "
-            f"{self.error_rate():.2f}%"
+            f"\n→ Most Problematic Machine: "
+            f"{self.most_prob_machine()[0]} → {self.most_prob_machine()[1]}\n"
         )
 
-        print(f"\nStatus 'Error' by Machine during simulation: ")
+        print(f"→ Bottleneck:\n")
+        bottle, avg = self.bottleneck_analysis()
+        print(f"  • {bottle} (AVG {avg:.2f} pieces)\n")
+
+        print(f"→ Max queues:\n{self.bottleneck()}\n")
+
+        print(f"→ Maintenances:")
+        print(f"  • Corrective: {self.tot_maintenance()[0]}")
+        print(f"  • Preventive: {self.tot_maintenance()[1]}")
+    
+
+        print(f"\n→ Distribution of errors cycles:") # Rows in which there is a specific type of error, should implement an error log table
+        for machine, severity in self.severity_dist():
+            print(f"  • {machine}: {severity}")
+
+        print(f"\n→ State distribution:")
+        for status, count in self.state_distribution():
+            print(f"  • {status}: {count} ({100*count/self.rows():.2f}%)")
+        
+        print(f"\n→ Status 'Error' by Machine during simulation: ")
         for machine, error in self.errors_by_machine():
-            print(f" • {machine}: {error}")
+            print(f"  • {machine}: {error} ({100*error/self.rows():.2f}%)")
 
-        print(
-            f"\nMost Problematic Machine: "
-            f"{self.most_prob_machine()[0]} → {self.most_prob_machine()[1]}"
-        )
 
-        print(f"Process completed without missing pieces? → {self.simulation_integrity()}")
+        print(f"\n→ Process integrity:\n{self.simulation_integrity()}")
+
+        
