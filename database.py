@@ -102,5 +102,9 @@ def reset_db():
     DROP TABLE IF EXISTS simulation_data
     """)
 
+    cursor.execute("""
+    DROP TABLE IF EXISTS error_log
+    """)
+
     conn.commit()
     

@@ -2,7 +2,7 @@
 
 import time
 from machine import Machine
-from database import create_table, insert_data, reset_db, insert_simulation_data
+from database import create_table, insert_data, reset_db, insert_simulation_data, insert_error
 from queue_manager import ProductionQueue
 
 class FactorySim():
@@ -35,12 +35,16 @@ class FactorySim():
 
             # MACHINE 1 ENTRADA
 
-            entrada.update()
+            error_e = entrada.update()
 
             if entrada.status == "RUNNING":
                 # If no error in first machine, add to queue for the second one
                 self.queue_1.add_piece()
                 self.created_pieces += 1
+
+            if error_e:
+
+                insert_error(cycle,entrada,error_e)
 
             insert_data(entrada,cycle)
 
@@ -64,7 +68,8 @@ class FactorySim():
                 else:
                     proceso.status = "RUNNING"
 
-            proceso.update()
+            # Registry on error log table
+            error_p = proceso.update()
 
             if proceso.status == "RUNNING":
 
@@ -76,6 +81,10 @@ class FactorySim():
 
             elif proceso.status == "IDLE":
                 pass
+
+            if error_p:
+
+                insert_error(cycle,proceso,error_p)
 
             insert_data(proceso,cycle)
             
@@ -99,7 +108,7 @@ class FactorySim():
                 else:
                     salida.status = "RUNNING"
 
-            salida.update()
+            error_s = salida.update()
 
             if salida.status == "RUNNING":
 
@@ -110,6 +119,10 @@ class FactorySim():
 
             elif salida.status == "IDLE":
                 pass
+
+            if error_s:
+
+                insert_error(cycle,salida,error_s)
 
             insert_data(salida,cycle)
             
@@ -168,20 +181,3 @@ class FactorySim():
     def reset(self): 
         reset_db()
     
-
-
-    # def run(self, max_cycles=5):
-        
-    #     cycles = 0
-    #     while cycles < max_cycles:
-            
-    #         for machine in self.machines:
-    #             machine.update()
-    #             insert_data(machine)
-    #             print(machine)
-                
-    #         cycles += 1
-    #         print("----------------------------------")
-    #         time.sleep(2)
-
-    #     print("Numero de ciclos alcanzado")

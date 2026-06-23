@@ -116,7 +116,9 @@ class Machine():
 
             self.status = "ERROR"
 
-            return       
+            return self.error_type 
+
+        return None
 
     def __str__(self):
 
